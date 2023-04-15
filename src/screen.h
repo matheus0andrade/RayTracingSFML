@@ -36,7 +36,6 @@ public:
             double dWidth = width, dHeight = height;
             for(int i = 0; i < width; i++) {
                 for(int j = 0; j < height; j++) {
-
                     // Not a good implementation, might be better to store this in a global variable
                     // ok for now, but will need to change later to allow new camera directions
                     int samples = 1;
@@ -48,6 +47,9 @@ public:
                         double dy = 1.;
                         double dz = -2. * sin(DEG_TO_RAD * verticalFOV / 2.) * (j2 - dHeight / 2) / dHeight;
                         Ray ray(origin, normalize(sf::Vector3f(dx, dy, dz)));
+
+                        // a ray should have a base color
+                        ray.addColor(sf::Color(0, 0, 0), 0.1, 0.1);
                         sf::Color color(0, 0, 0);
                         float intensity = 1.;
                         while(ray.bounceCount < 20) {
@@ -65,34 +67,26 @@ public:
                                 }
                             }
 
-                            // ray.travelDistance += minT;
-                            // float intensity = 1. / (ray.travelDistance * ray.travelDistance + 0.5);
+                            ray.travelDistance += minT;
+                            float distance = std::min(25. / (ray.travelDistance * ray.travelDistance), 1.);
                             if(ptr) {
                                 sf::Color color = ptr->getColor(ray.getPoint(minT), ray);
                                 sf::Vector3f contactPoint = ray.getPoint(minT);
                                 sf::Vector3f normal = ptr->getNormal(contactPoint);
 
-                                // In case we reach a light source, we should add this total to the light absorbed
-                                // In any case, we adjust the intensity according to the normal of the bounces up to this point
-                                // Probably gonna get too dark...
-                                // ray.lightNormal *= abs(dot(normal, normalize(ray.origin - contactPoint)));
-                                // ray.lightAbsorbed += ptr->getEmissivity() * ray.lightNormal;
-
-                                // ray.addSimpleColor(color, intensity);
-                                // ray.addColor(sf::Color(ray.lightNormal * color.r, ray.lightNormal * color.g, ray.lightNormal * color.b),
-                                //     (.3 + ptr->getEmissivity()) * intensity * ray.lightNormal);
-
-                                float randomFloat = (float)std::rand() / RAND_MAX;                            
+                                float randomFloat = (float)std::rand() / RAND_MAX;
+                                ray.bounceCount++;                      
                                 if(randomFloat < ptr->getReflectivity()) {
-                                    ray.bounce(normal, contactPoint);
+                                    ptr->bounce(ray, normal, contactPoint);
+                                } else if(randomFloat < ptr->getRefractivity()) {
                                 } else {
-                                    ray.addColor(color, intensity, 1.0);
+                                    ray.addColor(color, distance * intensity, 1.0);
                                     intensity /= 2;
-                                    ray.bounceRandomly(normal, contactPoint);
+                                    ptr->bounceRandomly(ray, normal, contactPoint);
                                 }
                             } else {
                                 // wandering off to the sky
-                                // ray.addColor(sf::Color(0, 0, 0), 0.1);
+
                                 sf::Vector3f base(255. * 0.3, 255. * 0.5, 255.);
                                 float zCompNorm = (ray.dir.z + 1) / 2;
                                 sf::Vector3f newColor = base * zCompNorm + sf::Vector3f(255, 255, 255) * (1 - zCompNorm);
@@ -105,22 +99,6 @@ public:
                         finalR += newColor.r * newColor.r;
                         finalG += newColor.g * newColor.g;
                         finalB += newColor.b * newColor.b;
-                        // float oldR = trueColors[i][j][0], oldG = trueColors[i][j][1], oldB = trueColors[i][j][2];
-                        // float totalLight = trueColors[i][j][3];
-                        // float newR = newColor.r, newG = newColor.g, newB = newColor.b;
-                        
-                        // Not sure if these values make sense, might change later
-                        // float thisLight = std::max(std::min(2.f, ray.lightAbsorbed), .1f);
-                        // float addLight = std::max(1.f, ray.lightAbsorbed);
-
-                        // Not getting light from a source should be penalized.
-                        // float setR = sqrt((oldR * oldR * totalLight + newR * newR * thisLight) / (totalLight + addLight));
-                        // float setG = sqrt((oldG * oldG * totalLight + newG * newG * thisLight) / (totalLight + addLight));
-                        // float setB = sqrt((oldB * oldB * totalLight + newB * newB * thisLight) / (totalLight + addLight));
-                        // std::cout << setR << " " << setG << " " << setB << std::endl;
-                        // trueColors[i][j] = {setR, setG, setB, totalLight + addLight};
-                        // image.setPixel(i, j, sf::Color(setR, setG, setB));
-                        // image.setPixel(i, j, newColor);
                     }
                     sf::Color oldColor = image.getPixel(i, j);
                     float r = oldColor.r, g = oldColor.g, b = oldColor.b;
@@ -128,8 +106,6 @@ public:
                     g = sqrt((g * g * frameCnt + finalG) / (frameCnt + 1));
                     b = sqrt((b * b * frameCnt + finalB) / (frameCnt + 1));
                     image.setPixel(i, j, sf::Color(r, g, b));
-                    // image.setPixel(i, j, sf::Color(sq * sqrt(finalR / samples), sq * sqrt(finalG / samples), sq * sqrt(finalB / samples)));
-                    // image.setPixel(i, j, sf::Color(sq * sqrt(finalR / 255), sq * sqrt(finalG / 255), sq * sqrt(finalB / 255)));
                 }
             }
             sf::Texture texture;

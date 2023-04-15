@@ -1,2 +1,4 @@
 .exe
-images
+src/*.exe
+src/*.o
+images/

@@ -3,7 +3,7 @@
 
 #include "object.h"
 
-class SphereObject : public Object {
+class BaseSphereObject : public Object {
     float radius, x, y, z;
     float reflectivity, transparency, emissivity;
     sf::Color color;
@@ -11,15 +11,12 @@ public:
     sf::Color getColor(sf::Vector3f point, Ray ray) {
         return color;
     }
-    SphereObject(float radius, float x = 0, float y = 0, float z = 0, sf::Color color = sf::Color::Black, 
-                    float reflectivity = 0.0f, float emissivity = 0.0f) {
+    BaseSphereObject(float radius, float x = 0, float y = 0, float z = 0, sf::Color color = sf::Color::Black) {
         this->radius = radius;
         this->x = x;
         this->y = y;
         this->z = z;
         this->color = color;
-        this->reflectivity = reflectivity;
-        this->emissivity = emissivity;
     }
     std::pair<bool, double> intersect(Ray ray) {
         sf::Vector3f origin = ray.origin;
@@ -45,10 +42,34 @@ public:
         return normalize(sf::Vector3f(point.x - x, point.y - y, point.z - z));
     }
     float getReflectivity() {
+        return 0;
+    }
+    float getRefractivity() {
+        return 0;
+    }
+
+};
+
+class ReflectiveSphereObject : public BaseSphereObject {
+    float reflectivity;
+public:
+    ReflectiveSphereObject(float radius, float x = 0, float y = 0, float z = 0, sf::Color color = sf::Color::Black, float reflectivity = 0) :
+        BaseSphereObject(radius, x, y, z, color), reflectivity(reflectivity) {}
+    float getReflectivity() {
         return reflectivity;
     }
-    float getEmissivity() {
-        return emissivity;
+};
+
+class RefractiveSphereObject : public BaseSphereObject {
+    float transparency, refractiveIndex;
+public:
+    RefractiveSphereObject(float radius, float x = 0, float y = 0, float z = 0, sf::Color color = sf::Color::Black, float transparency = 0, float refractiveIndex = 1) : 
+        BaseSphereObject(radius, x, y, z, color), transparency(transparency) {}
+    float getTransparency() {
+        return transparency;
+    }
+    float getRefractiveIndex() {
+        return refractiveIndex;
     }
 };
 

@@ -14,26 +14,7 @@ public:
     sf::Vector3f getPoint(float t) {
         return origin + dir * t;
     }
-    void bounceRandomly(sf::Vector3f normal, sf::Vector3f point) {
-        float x, y, z;
-        do {
-            x = (float)rand() / RAND_MAX * 2 - 1, y = (float)rand() / RAND_MAX * 2 - 1, z = (float)rand() / RAND_MAX * 2 - 1;
-        } while(x * x + y * y + z * z > 1);
-        // add or remove normalize from random vector: 2 distributions
-        sf::Vector3f newDir = normalize(normal + normalize(sf::Vector3f(x, y, z)));
-        if(dot(newDir, normal) < 0)
-            newDir = -newDir;
-        origin = point + newDir * 0.0001f;
-        dir = newDir;
-        bounceCount++;
-    }
-    void bounce(sf::Vector3f normal, sf::Vector3f point) {
-        sf::Vector3f newDir = normalize(dir - 2 * dot(dir, normal) * (normal));
-        origin = point + newDir * 0.0001f;
-        dir = newDir;
-        bounceCount++;
-    }
-    void addColor(sf::Color newColor, float cInt, float addToLight = 1) {
+    void addColor(sf::Color newColor, float cInt, float addToLight = 1.0) {
         float r = (float) newColor.r, g = (float) newColor.g, b = (float) newColor.b;
         colorx += r * r * cInt;
         colory += g * g * cInt;
@@ -42,16 +23,6 @@ public:
     }
     sf::Color getColor() {
         return sf::Color(sqrt(colorx / intensity), sqrt(colory / intensity), sqrt(colorz / intensity));
-    }
-    void addSimpleColor(sf::Color newColor, float cInt) {
-        float r = (float) newColor.r, g = (float) newColor.g, b = (float) newColor.b;
-        simpleColorx += r * cInt;
-        simpleColory += g * cInt;
-        simpleColorz += b * cInt;
-        simpleIntensity++;
-    }
-    sf::Color getSimpleColor() {
-        return sf::Color(simpleColorx / simpleIntensity, simpleColory / simpleIntensity, simpleColorz / simpleIntensity);
     }
     Ray(sf::Vector3f origin, sf::Vector3f dir) : origin(origin), dir(dir) {}
 };
