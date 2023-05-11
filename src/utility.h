@@ -24,6 +24,17 @@ float len(sf::Vector3f v) {
     return sqrt(v.x * v.x + v.y * v.y + v.z * v.z); 
 }
 
+void rotate(sf::Vector3f &d, sf::Vector2f rot) {
+    float alpha = rot.x * DEG_TO_RAD, beta = rot.y * DEG_TO_RAD;
+    float sin_beta = sin(beta), cos_beta = cos(beta), sin_alpha = sin(alpha), cos_alpha = cos(alpha);
+    sf::Vector3f newDir;
+    newDir.x = d.x;
+    newDir.y = d.y * cos_beta - d.z * sin_beta;
+    newDir.z = d.y * sin_beta + d.z * cos_beta;
+    d.x = newDir.x * cos_alpha - newDir.y * sin_alpha;
+    d.y = newDir.x * sin_alpha + newDir.y * cos_alpha;
+    d.z = newDir.z;
+}
 
 
 #endif

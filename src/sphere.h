@@ -77,26 +77,31 @@ public:
     }
 
     void refract(Ray &ray, sf::Vector3f normal, sf::Vector3f point) {
+        double refractive_ratio = 1;
+        if(dot(ray.dir, normal) > 0) {
+            normal = -normal;
+            refractive_ratio = refractiveIndex;
+        } else {
+            refractive_ratio = 1.0 / refractiveIndex;
+        }
+
         // ray.origin = point + 0.001f * ray.dir;
         // get angle between ray and normal
-        if(dot(ray.dir, normal) > 0) {
-            normal *= -1.f;
-        }
         double cos_theta = dot(ray.dir, -normal) / (len(ray.dir) * len(normal));
         double theta = acos(cos_theta);
         double sin_theta = sin(theta);
-        double sin_alpha = ray.currentRefractiveIndex * sin_theta / refractiveIndex;
-        if(sin_alpha >= 0.999) {
+
+        double sin_alpha = sin_theta * refractive_ratio;
+        if(sin_alpha >= 0.9999) {
             // normal reflection
             bounce(ray, normal, point);
         } else {
             double alpha = asin(sin_alpha);
             sf::Vector3f dir = normalize(ray.dir);
             sf::Vector3f refractedDir(0, 0, 0);
-            float a = cos(alpha) / (cos_theta);
-            float b = sin(alpha) - a * sin(theta);
+            float a = sin(alpha) / (sin_theta);
+            float b = a * cos(theta) - cos(alpha);
             refractedDir = a * dir + b * normal;
-            ray.currentRefractiveIndex = refractiveIndex;
             ray.dir = normalize(refractedDir);
             ray.origin = point + 0.001f * ray.dir;
         }

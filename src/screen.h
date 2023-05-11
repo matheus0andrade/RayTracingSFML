@@ -9,6 +9,7 @@ class Screen {
     int width, height;
     float verticalFOV, horizontalFOV;
     sf::Vector3f origin;
+    sf::Vector2f cameraPosition;
 public:
     void addObject(Object* object) {
         objects.push_back(object);
@@ -19,6 +20,9 @@ public:
 
     void setOrigin(sf::Vector3f origin) {
         this->origin = origin;
+    }
+    void setCameraPosition(sf::Vector2f cameraPosition) {
+        this->cameraPosition = cameraPosition;
     }
 
     void run(std::vector<std::vector<std::vector<float>>> &trueColors) {
@@ -46,13 +50,15 @@ public:
                         double dx = 2. * sin(DEG_TO_RAD * horizontalFOV / 2.) * (i2 - dWidth / 2) / dWidth;
                         double dy = 1.;
                         double dz = -2. * sin(DEG_TO_RAD * verticalFOV / 2.) * (j2 - dHeight / 2) / dHeight;
-                        Ray ray(origin, normalize(sf::Vector3f(dx, dy, dz)));
+                        sf::Vector3f dir = normalize(sf::Vector3f(dx, dy, dz));
+                        rotate(dir, cameraPosition);
+                        Ray ray(origin, dir);
                         sf::Color color(0, 0, 0);
                         float intensity = 1.;
                         while(ray.bounceCount < 20) {
 
                             // Another parameter to tweek.
-                            double minT = 1000;
+                            double minT = 25;
                             Object* ptr = nullptr;
                             for(auto object : objects) {
                                 std::pair<bool, double> check = object->intersect(ray);
