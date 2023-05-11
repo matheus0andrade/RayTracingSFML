@@ -36,8 +36,11 @@ public:
     float getReflectivity() {
         return reflectivity;
     }
-    float getEmissivity() {
-        return emissivity;
+    float getRefractivity() {
+        return 0;
+    }
+    void refract(Ray &ray, sf::Vector3f normal, sf::Vector3f point) {
+        // not implemented
     }
 };
 

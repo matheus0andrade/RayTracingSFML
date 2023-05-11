@@ -6,12 +6,18 @@
 
 class Object {
 public:
+    float reflectivity = 0, refractivity = 0;
     virtual std::pair<bool, double> intersect(Ray ray) = 0;
     virtual sf::Color getColor(sf::Vector3f point, Ray ray) = 0;
     virtual sf::Vector3f getNormal(sf::Vector3f point) = 0;
+    virtual float getReflectivity() = 0;
+    virtual float getRefractivity() = 0;
+    virtual void refract(Ray &ray, sf::Vector3f normal, sf::Vector3f point) = 0;
     // virtual Ray bounce(Ray ray, sf::Vector3f contactPoint) = 0;
 
     void bounce(Ray &ray, sf::Vector3f normal, sf::Vector3f point) {
+        // if(dot(ray.dir, normal) > 0)
+        //     normal = -normal;
         sf::Vector3f newDir = normalize(ray.dir - 2 * dot(ray.dir, normal) * (normal));
         ray.origin = point + newDir * 0.0001f;
         ray.dir = newDir;
@@ -29,13 +35,6 @@ public:
         ray.dir = newDir;
     }
 
-
-    float getReflectivity() {
-        return 0;
-    }
-    float getRefractivity() {
-        return 0;
-    }
 
 };
 

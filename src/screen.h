@@ -47,15 +47,12 @@ public:
                         double dy = 1.;
                         double dz = -2. * sin(DEG_TO_RAD * verticalFOV / 2.) * (j2 - dHeight / 2) / dHeight;
                         Ray ray(origin, normalize(sf::Vector3f(dx, dy, dz)));
-
-                        // a ray should have a base color
-                        ray.addColor(sf::Color(0, 0, 0), 0.1, 0.1);
                         sf::Color color(0, 0, 0);
                         float intensity = 1.;
                         while(ray.bounceCount < 20) {
 
                             // Another parameter to tweek.
-                            double minT = 20;
+                            double minT = 1000;
                             Object* ptr = nullptr;
                             for(auto object : objects) {
                                 std::pair<bool, double> check = object->intersect(ray);
@@ -67,20 +64,21 @@ public:
                                 }
                             }
 
-                            ray.travelDistance += minT;
-                            float distance = std::min(25. / (ray.travelDistance * ray.travelDistance), 1.);
+                            // ray.travelDistance += minT;
+                            // float distance = std::min(25. / (ray.travelDistance * ray.travelDistance), 1.);
                             if(ptr) {
                                 sf::Color color = ptr->getColor(ray.getPoint(minT), ray);
                                 sf::Vector3f contactPoint = ray.getPoint(minT);
                                 sf::Vector3f normal = ptr->getNormal(contactPoint);
 
                                 float randomFloat = (float)std::rand() / RAND_MAX;
-                                ray.bounceCount++;                      
+                                ray.bounceCount++; 
                                 if(randomFloat < ptr->getReflectivity()) {
                                     ptr->bounce(ray, normal, contactPoint);
                                 } else if(randomFloat < ptr->getRefractivity()) {
+                                    ptr->refract(ray, normal, contactPoint);
                                 } else {
-                                    ray.addColor(color, distance * intensity, 1.0);
+                                    ray.addColor(color, intensity, 1.0);
                                     intensity /= 2;
                                     ptr->bounceRandomly(ray, normal, contactPoint);
                                 }
@@ -96,9 +94,9 @@ public:
                             }
                         }
                         sf::Color newColor = ray.getColor();
-                        finalR += newColor.r * newColor.r;
-                        finalG += newColor.g * newColor.g;
-                        finalB += newColor.b * newColor.b;
+                        finalR += newColor.r * newColor.r / samples;
+                        finalG += newColor.g * newColor.g / samples;
+                        finalB += newColor.b * newColor.b / samples;
                     }
                     sf::Color oldColor = image.getPixel(i, j);
                     float r = oldColor.r, g = oldColor.g, b = oldColor.b;
